@@ -5,6 +5,7 @@ import os
 import json
 import foursquare
 from ics import Calendar, Event
+import azure.functions as func
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
@@ -38,14 +39,19 @@ class FeedGenerator:
         self.api_access_token = config.get("Foursquare", "AccessToken")
         self.ics_filepath = config.get("Local", "IcsFilepath")
 
-    def generate(self):
+    def generate(self,  calendarBlob: func.Out[bytes], year=None):
 #        checkins = self._get_checkins()
+        print("Generating Calendar for year {}".format(year))
+
         checkins = self._get_all_checkins()
 
-        calendar = self._generate_calendar(checkins)
+        calendar = self._generate_calendar(checkins, year)
         print("Writting calendar")
-        with open(self.ics_filepath, "w", newline='') as f:
-            f.writelines(calendar)
+#        with open(self.ics_filepath, "w", newline='') as f:
+#            f.writelines(calendar)
+#        output_file = open(os.environ['calendarBlob'], 'w')
+        calendarBlob.set(str.encode(str(calendar)))
+#        output_file.close()
 
         return calendar
 
@@ -79,12 +85,11 @@ class FeedGenerator:
 
         return user["user"]["canonicalUrl"]
 
-    def _generate_calendar(self, checkins):
+    def _generate_calendar(self, checkins, year=None):
         """
         Supplied with a list of checkin data from the API, generates an
         ics Calendar object and returns it.
         """
-        print("Generating Calendar")
         user_url = self._get_user_url()
 
         c = Calendar()
@@ -102,11 +107,13 @@ class FeedGenerator:
                 e.url = "{}/checkin/{}".format(user_url, checkin["id"])
                 e.uid = "{}@foursquare.com".format(checkin["id"])
                 e.begin = checkin["createdAt"]
+
                 e.end = e.begin
 
                 # Use the 'shout', if any, and the timezone offset in the
                 # description.
                 description = []
+                description.append("{}\n".format(e.url))
                 if "shout" in checkin and len(checkin["shout"]) > 0:
                     description = [checkin["shout"]]
                 description.append("Timezone offset: {}".format(tz_offset))
@@ -121,7 +128,12 @@ class FeedGenerator:
                         location = "{}, {}".format(location, address)
                 e.location = location
 
-                c.events.add(e)
+
+                if (year is not None):
+                    if (e.begin.year == year):
+                        c.events.add(e)
+                else:
+                    c.events.add(e)
             except:
                 print ("Error processing {}".format(venue_name))
                 continue
