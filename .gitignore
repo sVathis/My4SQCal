@@ -135,3 +135,4 @@ My4SQCal.zip
 .vscode/launch.json
 .vscode/extensions.json
 extensions.csproj
+HttpTriggerMy4SQCal/config.ini
