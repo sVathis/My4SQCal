@@ -129,3 +129,9 @@ appsettings.json
 local.settings.json
 .python_packages
 My4SQCal.zip
+.funcignore
+.vscode/tasks.json
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json
+extensions.csproj
