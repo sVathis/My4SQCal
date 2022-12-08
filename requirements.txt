@@ -1,7 +1,7 @@
 
 #@bd918ec7453a7cf73a906cdcc78bd88eb4bab71b#egg=ics
 arrow==0.4.2
-certifi==2019.3.9
+certifi==2022.12.7
 chardet==3.0.4
 foursquare==1!2019.2.16
 idna==2.8
